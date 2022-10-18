@@ -1,0 +1,46 @@
+name : ci/cd in github actions
+
+on: 
+  push: 
+    branch: [ main ]
+
+jobs: 
+  test: 
+    name: ci/cd in github actions
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with: 
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+      
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      
+      - name: Build, tag, and push image to AWS ECR
+        id: build-image
+        env: 
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: django-dynamodb-eks
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_SHA::7} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_SHA::7}
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_SHA::7}"
+
+      - name: Update image tag in Helm Chart
+        run: |
+            imagetag=$(cat ./helm/values.yaml | grep imagetag: | awk '{print $2}')
+            sed -i "s/$imagetag/${GITHUB_SHA::7}/" ./helm/values.yaml
+            
+      - name: Commit and push helm chart imagetag
+        uses: devops-infra/action-commit-push@v0.9.0
+        with:
+          github_token: ${{ secrets.TOKEN_GITHUB }}
+          commit_message: image tag updated in the helm chart(this is auto commit)

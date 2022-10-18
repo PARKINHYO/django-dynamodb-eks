@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-dynamodb-eks
+  namespace: django-dynamodb-eks
+spec:
+  ports:
+    - name: django-dynamodb-eks
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 30010
+  selector:
+    app: django-dynamodb-eks
+  type: NodePort

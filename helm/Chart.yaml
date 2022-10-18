@@ -1,0 +1,3 @@
+apiVersion: v2
+name: django-dynamodb-eks
+version: 0.0.1

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-dynamodb-eks
+  namespace: django-dynamodb-eks
+  labels:
+    app: django-dynamodb-eks
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django-dynamodb-eks
+  template:
+    metadata:
+      labels:
+        app: django-dynamodb-eks
+    spec:
+      serviceAccountName: dynamodb-sa-test
+      containers:
+      - name: django-dynamodb-eks
+        image: 963897741994.dkr.ecr.ap-northeast-2.amazonaws.com/django-dynamodb-eks:latest
+        envFrom: 
+          - secretRef: 
+              name: django-dynamodb-eks
+        ports:
+        - containerPort: 8080

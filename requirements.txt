@@ -1,0 +1,9 @@
+django>=4.1
+boto3
+marshmallow==3.10.0
+requests
+dynamorm
+gunicorn
+django-dotenv
+psycopg2-binary
+django-storages
